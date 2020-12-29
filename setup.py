@@ -12,7 +12,7 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     url="https://notify.guru",
     packages=setuptools.find_packages(),
-    install_requires=['requests', 'qrcode'],
+    install_requires=['requests', 'qrcode', 'Pillow'],
     entry_points={'console_scripts':
                   ['notifyg=notifyg.cli:main']},
     classifiers=[
