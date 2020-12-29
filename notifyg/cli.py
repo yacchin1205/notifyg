@@ -1,4 +1,3 @@
-import fileinput
 import os
 import sys
 import logging
@@ -59,7 +58,7 @@ def main():
         source = service.Source(id=source_id)
     message = None
     if args.stdin:
-        message = '\n'.join(fileinput.input())
+        message = '\n'.join([line for line in sys.stdin])
     elif len(args.message) > 0:
         message = ' '.join(args.message)
     else:
