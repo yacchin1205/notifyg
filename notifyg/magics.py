@@ -1,4 +1,5 @@
 from IPython.core.magic import (Magics, magics_class, line_magic)
+import qrcode
 from notifyg import service
 
 @magics_class
@@ -10,8 +11,9 @@ class NotifyMagics(Magics):
     @line_magic
     def notifyg_init(self, line):
         self.source = service.Source(name=line)
+        print('Open the following link to configure this notification channel.')
         print(self.source.register_url)
-        return line
+        return qrcode.make(self.source.register_url)
 
     @line_magic
     def notifyg(self, line):
