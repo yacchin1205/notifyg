@@ -21,3 +21,9 @@ class NotifyMagics(Magics):
             raise ValueError('Not initialized. Use %notifyg_init first')
         self.source.send(line)
         return line
+
+def load_ipython_extension(ipython):
+    '''
+    Define %notifyg_init, %notify magic
+    '''
+    ipython.register_magics(NotifyMagics)
