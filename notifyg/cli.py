@@ -7,6 +7,7 @@ import webbrowser
 from notifyg import service
 
 ENV_SOURCE = 'NOTIFYG_SOURCE'
+ENV_SECRET = 'NOTIFYG_SECRET'
 LOG_FORMAT = '%(asctime)-15s %(levelname)s %(message)s'
 
 logger = logging.getLogger()
@@ -40,6 +41,7 @@ def main():
 
     source = None
     source_id = os.environ.get(ENV_SOURCE, None)
+    secret = os.environ.get(ENV_SECRET, None)
     if source_id is None and not args.init:
         print('Environment {} is not set. Please perform `eval $(notifyg --init)`'.format(ENV_SOURCE),
               file=sys.stderr)
@@ -49,15 +51,16 @@ def main():
         sys.exit(1)
     if args.init:
         logger.info('Creating new source...')
-        source = service.Source(name=args.name)
+        source = service.Source(name=args.name, secret=secret)
         if not args.no_browser:
             webbrowser.open(source.register_url)
         else:
             print('Please configure your notification source:',
                   source.register_url, file=sys.stderr)
         print('export {}={}'.format(ENV_SOURCE, source.id))
+        print('export {}={}'.format(ENV_SECRET, source.secret))
     else:
-        source = service.Source(id=source_id)
+        source = service.Source(id=source_id, secret=secret)
     message = None
     if args.stdin:
         message = '\n'.join([line for line in sys.stdin])
