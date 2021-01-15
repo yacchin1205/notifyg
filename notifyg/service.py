@@ -4,7 +4,9 @@ import os
 import logging
 import hashlib
 import hmac
+import magic
 import requests
+import six
 
 SERVICE_URL = 'https://notify.guru/v1/sources/'
 
@@ -67,15 +69,50 @@ class Source:
             Message Text to send
         '''
         messagejson = message
-        if isinstance(message, str):
+        if isinstance(message, six.string_types):
             messagejson = {'text': message}
+        elif hasattr(message, 'read'):
+            messagejson = {'text': message.read()}
         logger.debug('Message: {}'.format(json.dumps(messagejson)))
-        url = '{}{}/messages/'.format(self.service_url, self.id)
         data = json.dumps(messagejson).encode('utf8')
+        self._send('application/json; charset=utf-8', data)
+
+    def send_image(self, image, mime_type=None):
+        '''
+        Send an image
+
+        Parameters
+        ----------
+        image : str or file
+            An Image to send
+        mime_type : str
+            A MIME type to send
+        '''
+        data = None
+        if isinstance(image, six.string_types):
+            with open(image, 'rb') as f:
+                data = f.read()
+        elif hasattr(image, 'read'):
+            data = image.read()
+        if mime_type is None:
+            mime = magic.Magic(mime=True)
+            mime_type = mime.from_buffer(data)
+        self._send(mime_type, data)
+
+    def _send(self, content_type, data):
+        '''
+        Send a message
+
+        Parameters
+        ----------
+        data : bytes
+            Message Payload to send
+        '''
+        url = '{}{}/messages/'.format(self.service_url, self.id)
         hash = hashlib.sha256()
         hash.update(data)
         headers = {
-            'Content-Type': 'application/json; charset=utf-8',
+            'Content-Type': content_type,
             'Host': 'notify.guru',
             'x-notifyg-epoch': str(int(datetime.now().timestamp() * 1000)),
             'x-notifyg-content-sha256': hash.hexdigest(),
