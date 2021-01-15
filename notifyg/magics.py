@@ -1,5 +1,7 @@
 import ast
 import io
+import traceback
+import sys
 import six
 from IPython.core.magic import (Magics, magics_class, line_magic, line_cell_magic, needs_local_scope)
 import qrcode
@@ -41,22 +43,30 @@ class NotifyMagics(Magics):
         else:
             exec_expr_ast = expr_ast
         source = '<notifyg>'
-        if exec_expr_ast:
-            eval(self.shell.compile(exec_expr_ast, source, 'exec'), self.shell.user_ns, local_ns)
-        if eval_expr_ast:
-            r = eval(self.shell.compile(eval_expr_ast, source, 'eval'), self.shell.user_ns, local_ns)
-        else:
-            r = 'executed'
+        cellresult = None
+        try:
+            if exec_expr_ast:
+                exec(self.shell.compile(exec_expr_ast, source, 'exec'), self.shell.user_ns, local_ns)
+            if eval_expr_ast:
+                cellresult = eval(self.shell.compile(eval_expr_ast, source, 'eval'), self.shell.user_ns, local_ns)
+                r = cellresult
+            else:
+                r = '(executed)'
+        except:
+            strio = io.StringIO()
+            traceback.print_exc(file=strio)
+            r = strio.getvalue()
+            print(r, file=sys.stderr)
         image, mime_type = self._get_image(r)
         if image is not None:
             self.source.send_image(image, mime_type=mime_type)
         else:
             self.source.send(self._normalize(r))
-        return r
+        return cellresult
 
     def _get_image(self, value):
         if hasattr(value, 'data') and hasattr(value, 'format'):
-            return io.BytesIO(value.data), value.format
+            return io.BytesIO(value.data), 'image/' + value.format
         return None, None
 
     def _normalize(self, message):
