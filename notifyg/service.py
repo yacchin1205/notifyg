@@ -94,6 +94,8 @@ class Source:
                 data = f.read()
         elif hasattr(image, 'read'):
             data = image.read()
+        else:
+            raise ValueError('Unexpected value')
         if mime_type is None:
             mime = magic.Magic(mime=True)
             mime_type = mime.from_buffer(data)
