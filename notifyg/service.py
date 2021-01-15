@@ -4,7 +4,6 @@ import os
 import logging
 import hashlib
 import hmac
-import magic
 import requests
 import six
 
@@ -97,6 +96,7 @@ class Source:
         else:
             raise ValueError('Unexpected value')
         if mime_type is None:
+            import magic
             mime = magic.Magic(mime=True)
             mime_type = mime.from_buffer(data)
         self._send(mime_type, data)
